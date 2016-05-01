@@ -2,6 +2,7 @@ library(data.table)
 library(BayesLogit)
 library(dplyr)
 library(mlogitBMA)
+library(caret)
 
 source("kershaw.R")
 
@@ -113,3 +114,81 @@ next_pitch = sample(x = pitches_names, size = 1, replace = TRUE, prob = prob_vec
 # with package
 
 # cross validation: accuracy of pitches 
+
+######################################### CROSS VALIDATION #########################################
+
+# Number of folds
+k = 35
+
+# number of observations
+n = nrow(kershaw)
+
+# Getting our folds -> these are indices for the rows that are the folds
+folds = createFolds(1:n, k = k)
+
+# Running k-fold CV
+holdout = c()
+
+for(i in 1:k)
+{
+  # Testing set
+  test = kershaw[folds[[i]], ]
+  # Training set
+  train = kershaw[-folds[[i]], ]
+  
+  # design matrices for input variables
+  # var1: outs
+  outs = factor(test$pre_outs)
+  X1.all = model.matrix(~ outs - 1)
+  X1    = X1.all[, -3]
+  
+  # var2: balls
+  balls = factor(test$pre_balls)
+  X2.all = model.matrix(~ balls - 1)
+  X2    = X2.all[, -4]
+  
+  # var3: strikes
+  strikes = factor(test$pre_strikes)
+  X3.all = model.matrix(~ strikes - 1)
+  X3    = X3.all[, -3]
+  
+  # MULTINOMIAL LOGISTIC REGRESSION
+  X = cbind(1, X1, X2, X3)
+  P = ncol(X)
+  J = length(unique(kershaw$pitch_type))
+  
+  # design matrix for y's
+  Y.all = model.matrix(~ test$pitch_type - 1)
+  Y = Y.all[, -J]
+  colnames(Y) = c("CH", "CU", "FF")
+  
+  # run model
+  multi_out = mlogit(Y, X, n = rep(1, length(test$pitch_type)), samp = 1000, burn = 100)
+  betas = multi_out$beta
+  post_betas = matrix(0, nrow = J, ncol = P)
+  
+  # get posterior means and put in formula
+  for (j in 1:J-1){
+    post_betas[j,] = colMeans(betas[,,j])
+  }
+  
+  post_betas[J] = 0
+  
+  ### SECTION WHERE WE HAVE TO CODE IN THE VECTORS FOR ALL OF THE TRAINING DATA ###
+  
+  # GONNA NEED A FOR LOOP I IMAGINE
+  new_x = c(1,1,0,0,0,0,1,0)
+  
+  #################################################################################
+  
+  probs = c()
+  for (j in 1:J){
+    probs[j] = exp(new_x %*% post_betas[j,])
+  }
+  
+  # print probability vector
+  prob_vec = probs / sum(probs)
+  
+}
+
+
