@@ -5,10 +5,24 @@ library(BayesLogit)
 library(dplyr)
 library(mlogitBMA)
 
+
+data = fread("Pitchfx.csv") %>%
+  	   mutate(game_date = dmy(game_date))
+
+data = data[which(data$pitch_type != "")]
+clayton_all = dplyr::filter(data, pitcher_id == "477132")  %>%
+              dplyr::filter(pitch_type != "IN") %>%
+ 		      arrange(game_date, at_bat_number)
+clayton = clayton_all$pitch_type 
+
+
+
 # contingency tables: some exploratory data analysis
 pitches = factor(data$pitch_type)
 outs_table = table(factor(data$pre_outs), fast)
 balls_table = table(factor(data$pre_balls), fast)
+
+
 
 
 # design matrices for input variables
