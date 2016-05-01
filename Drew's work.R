@@ -48,6 +48,10 @@ kershaw = pitchfx %>%
   filter(Name == "Kershaw, Clayton") %>%
   arrange(game_date, at_bat_number)
 
+# Removing intentional balls
+kershaw = kershaw %>%
+  filter(pitch_type != "IN")
+
 # Creating a new variable for the pitch number of the game
 pitchcounts = c()
 pitchcounts[1] = 1
@@ -64,5 +68,27 @@ for(i in 2:nrow(kershaw))
 
 kershaw = kershaw %>%
   mutate(pitch_count = pitchcounts)
+
+# Creating a new variable for the previous pitch type
+previous_pitch_type = c()
+previous_pitch_type[1] = "start"
+for(i in 2:nrow(kershaw))
+{
+  previous_pitch_type[i] = kershaw$pitch_type[i-1]
+}
+
+kershaw = kershaw %>%
+  mutate(previous_pitch_type = previous_pitch_type)
+
+# Creating a new variable for the previous event type
+previous_event_type = c()
+previous_event_type[1] = "start"
+for(i in 2:nrow(kershaw))
+{
+  previous_event_type[i] = kershaw$event_type[i-1]
+}
+
+kershaw = kershaw %>%
+  mutate(previous_event_type = previous_event_type)
 
          
