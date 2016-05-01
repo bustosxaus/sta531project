@@ -65,12 +65,15 @@ model_game = function(T, init, true_pitches){
 }
 
 
-true_pitches = clayton
+
 
 # trained model
 T = trans_matrix(clayton)
 pitches = colnames(T)
 init = init_vec(clayton)
+
+# run on held out set
+true_pitches = clayton
 
 
 accuracy = c()
