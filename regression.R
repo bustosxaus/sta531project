@@ -1,43 +1,43 @@
 library(data.table)
-library(barvs)
-library(BMA)
 library(BayesLogit)
 library(dplyr)
 library(mlogitBMA)
 
+source("kershaw.R")
 
-data = fread("Pitchfx.csv") %>%
-  	   mutate(game_date = dmy(game_date))
 
-data = data[which(data$pitch_type != "")]
-clayton_all = dplyr::filter(data, pitcher_id == "477132")  %>%
-              dplyr::filter(pitch_type != "IN") %>%
- 		      arrange(game_date, at_bat_number)
-clayton = clayton_all$pitch_type 
+#data = fread("Pitchfx.csv") %>%
+#  	   mutate(game_date = dmy(game_date))
+
+#data = data[which(data$pitch_type != "")]
+#clayton_all = dplyr::filter(data, pitcher_id == "477132")  %>%
+#              dplyr::filter(pitch_type != "IN") %>%
+# 		      arrange(game_date, at_bat_number)
+#clayton = clayton_all$pitch_type 
 
 
 
 # contingency tables: some exploratory data analysis
-pitches = factor(data$pitch_type)
-outs_table = table(factor(data$pre_outs), fast)
-balls_table = table(factor(data$pre_balls), fast)
+#pitches = factor(data$pitch_type)
+#outs_table = table(factor(data$pre_outs), fast)
+#balls_table = table(factor(data$pre_balls), fast)
 
 
 
 
 # design matrices for input variables
 # var1: outs
-outs = factor(clayton_all$pre_outs)
+outs = factor(kershaw$pre_outs)
 X1.all = model.matrix(~ outs - 1)
 X1    = X1.all[, -3]
 
 # var2: balls
-balls = factor(clayton_all$pre_balls)
+balls = factor(kershaw$pre_balls)
 X2.all = model.matrix(~ balls - 1)
 X2    = X2.all[, -4]
 
 # var3: strikes
-strikes = factor(clayton_all$pre_strikes)
+strikes = factor(kershaw$pre_strikes)
 X3.all = model.matrix(~ strikes - 1)
 X3    = X3.all[, -3]
 
@@ -74,16 +74,17 @@ X3    = X3.all[, -3]
 
 
 # MULTINOMIAL LOGISTIC REGRESSION
-P = ncol(X)
 X = cbind(1, X1, X2, X3)
-J = length(unique(clayton))
+P = ncol(X)
+J = length(unique(kershaw$pitch_type))
 
 # design matrix for y's
-Y.all = model.matrix(~ clayton - 1)
+Y.all = model.matrix(~ kershaw$pitch_type - 1)
 Y = Y.all[, -J]
+colnames(Y) = c("CH", "CU", "FF")
 
 # run model
-multi_out = mlogit(Y, X, n = rep(1, length(clayton)), samp = 1000, burn = 100)
+multi_out = mlogit(Y, X, n = rep(1, length(kershaw$pitch_type)), samp = 1000, burn = 100)
 betas = multi_out$beta
 post_betas = matrix(0, nrow = J, ncol = P)
 
@@ -104,8 +105,8 @@ for (j in 1:J){
 prob_vec = probs / sum(probs)
 prob_vec
 
-pitches_names = names(pitches)
-next_pitch = sample(x = pitches_names, size = 1, replace = TRUE, prob = next_probs)
+pitches_names = sort(unique(kershaw$pitch_type))
+next_pitch = sample(x = pitches_names, size = 1, replace = TRUE, prob = prob_vec)
 
 
 # MULTINOMIAL VARIABLE SELECTION
