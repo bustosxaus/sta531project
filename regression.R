@@ -76,7 +76,6 @@ Y = Y.all[, -J]
 
 # design matrix for X
 X = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
-    pre_balls:pre_strikes + 
     pitch_number + runners +
     pitch_count + top_inning_sw + bat_side + 
     inning + previous_pitch_type,
@@ -85,7 +84,6 @@ P = ncol(X)
 
 # RUN MODEL
 multi_out = mlogit(Y, X, n = rep(1, nrow(Y)), samp = 2000, burn = 500)
-
 betas = multi_out$beta
 # get posterior means and put in formula
 post_betas = matrix(0, nrow = J, ncol = P)
@@ -127,7 +125,6 @@ mean(accuracy)
 
 # function to pull out variables from data frame
 # predict pitch based on model 
-
 
 new_x = c(1, rep(0, P-1))
 
