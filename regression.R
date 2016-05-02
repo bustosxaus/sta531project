@@ -153,38 +153,71 @@ holdout = c()
 for(i in 1:k)
 {
   # Testing set
-  train = kershaw[folds[[i]], ]
+  test = kershaw[folds[[i]], ]
   # Training set
-  test = kershaw[-folds[[i]], ]
+  train = kershaw[-folds[[i]], ]
   
-  # design matrices for input variables
+  # design matrix for pitch_type
+  # design matrix for Y's
+  Y.all = model.matrix(~ pitch_type - 1, data = train)
+  Y = Y.all[, -J]
   
+  # design matrices for input variables, X_train
+  X_train = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
+                     pitch_number + runners +
+                     pitch_count + top_inning_sw + bat_side + 
+                     inning + previous_pitch_type,
+                   data = train)
+  P = ncol(X)
   
   # run model
-  
+  multi_out = mlogit(Y, X_train, n = rep(1, nrow(Y)), samp = 2000, burn = 500)
+  betas = multi_out$beta
   
   # get posterior means and put in formula
+  post_betas = matrix(0, nrow = J, ncol = P)
   for (j in 1:J-1){
     post_betas[j,] = colMeans(betas[,,j])
   }
-  
   post_betas[J] = 0
   
   ### SECTION WHERE WE HAVE TO CODE IN THE VECTORS FOR ALL OF THE TRAINING DATA ###
   
-  # GONNA NEED A FOR LOOP I IMAGINE
-  new_x = c(1,1,0,0,0,0,1,0)
+  # design matrix for test set, X_test
+  X_test = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
+                     pitch_number + runners +
+                     pitch_count + top_inning_sw + bat_side + 
+                     inning + previous_pitch_type,
+                   data = test)
+  P = ncol(X_test)
   
-  #################################################################################
-  
-  probs = c()
-  for (j in 1:J){
-    probs[j] = exp(new_x %*% post_betas[j,])
+  # Finding multinomial probabilities associated with each test observation
+  probs = matrix(0, nrow = nrow(X_test), ncol = J)
+  for (w in 1:nrow(X_test)){
+    new_x = X_test[w,]
+    for (j in 1:J){
+      probs[w,j] = exp(new_x %*% post_betas[j,])
+    }
   }
   
-  # print probability vector
-  prob_vec = probs / sum(probs)
+  # probability matrix from results of model
+  prob_mat = probs / rowSums(probs)
   
+  # find average accuracy of model
+  accuracy = c()
+  for (m in 1:10){
+    pred_pitches = c()
+    
+    for (i in 1:nrow(prob_mat)){
+      prob_vec = prob_mat[i,]
+      pred_pitches[i] = sample(x = pitches_names, 
+                               size = 1, replace = TRUE, prob = prob_vec)
+    }
+    
+    accuracy[m] = mean(pred_pitches == kershaw$pitch_type)
+  }
+  
+  holdout[i] = mean(accuracy)
 }
 
 
