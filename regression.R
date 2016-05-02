@@ -153,9 +153,9 @@ holdout = c()
 for(i in 1:k)
 {
   # Testing set
-  test = kershaw[folds[[i]], ]
+  train = kershaw[folds[[i]], ]
   # Training set
-  train = kershaw[-folds[[i]], ]
+  test = kershaw[-folds[[i]], ]
   
   # design matrices for input variables
   
