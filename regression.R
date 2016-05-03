@@ -139,7 +139,7 @@ new_x = c(1, rep(0, P-1))
 ######################################### CROSS VALIDATION #########################################
 
 # Number of folds
-k = 35
+k = 10
 
 # number of observations
 n = nrow(kershaw)
@@ -163,15 +163,20 @@ for(i in 1:k)
   Y = Y.all[, -J]
   
   # design matrices for input variables, X_train
-  X_train = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
-                     pitch_number + runners +
-                     pitch_count + top_inning_sw + bat_side + 
-                     inning + previous_pitch_type,
-                   data = train)
-  P = ncol(X)
+#   X_train = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
+#                      pitch_number + runners +
+#                      pitch_count + top_inning_sw + bat_side + 
+#                      inning + previous_pitch_type,
+#                    data = train)
+  X_train = model.matrix(~ as.factor(pre_outs) + as.factor(count) + 
+                          pitch_number + as.factor(runners) + 
+                          pitch_count + as.factor(top_inning_sw) + as.factor(bat_side) + 
+                          inning + as.factor(previous_pitch_type),
+                        data = train)
+  P = ncol(X_train)
   
   # run model
-  multi_out = mlogit(Y, X_train, n = rep(1, nrow(Y)), samp = 2000, burn = 500)
+  multi_out = mlogit(Y, X_train, n = rep(1, nrow(Y)), samp = 1000, burn = 200)
   betas = multi_out$beta
   
   # get posterior means and put in formula
@@ -184,11 +189,16 @@ for(i in 1:k)
   ### SECTION WHERE WE HAVE TO CODE IN THE VECTORS FOR ALL OF THE TRAINING DATA ###
   
   # design matrix for test set, X_test
-  X_test = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
-                     pitch_number + runners +
-                     pitch_count + top_inning_sw + bat_side + 
-                     inning + previous_pitch_type,
-                   data = test)
+ # X_test = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
+  #                   pitch_number + runners +
+   #                  pitch_count + top_inning_sw + bat_side + 
+    #                 inning + previous_pitch_type,
+     #              data = test)
+  X_test = model.matrix(~ as.factor(pre_outs)  +  as.factor(count) +
+                          pitch_number + as.factor(runners) +
+                          pitch_count + as.factor(top_inning_sw) + as.factor(bat_side) + 
+                          inning + as.factor(previous_pitch_type),
+                          data = test)
   P = ncol(X_test)
   
   # Finding multinomial probabilities associated with each test observation
@@ -208,13 +218,13 @@ for(i in 1:k)
   for (m in 1:10){
     pred_pitches = c()
     
-    for (i in 1:nrow(prob_mat)){
-      prob_vec = prob_mat[i,]
-      pred_pitches[i] = sample(x = pitches_names, 
+    for (g in 1:nrow(prob_mat)){
+      prob_vec = prob_mat[g,]
+      pred_pitches[g] = sample(x = pitches_names, 
                                size = 1, replace = TRUE, prob = prob_vec)
     }
     
-    accuracy[m] = mean(pred_pitches == kershaw$pitch_type)
+    accuracy[m] = mean(pred_pitches == test$pitch_type)
   }
   
   holdout[i] = mean(accuracy)
