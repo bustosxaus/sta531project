@@ -117,6 +117,8 @@ kershaw = kershaw %>%
 # Turning variables that are supposed to be factors into factors
 kershaw = kershaw %>%
   mutate(pre_outs = as.factor(pre_outs),
+         pre_strikes = as.factor(pre_strikes),
+         pre_balls = as.factor(pre_balls),
          count = as.factor(count),
          runners = as.factor(runners),
          top_inning_sw = as.factor(top_inning_sw),
