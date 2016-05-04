@@ -94,7 +94,7 @@ kershaw = kershaw %>%
 
 # Creating a new variable for the previous pitch type
 previous_pitch_type = c()
-previous_pitch_type[1] = "start"
+previous_pitch_type[1] = "FF"
 for(i in 2:nrow(kershaw))
 {
   previous_pitch_type[i] = kershaw$pitch_type[i-1]
@@ -105,7 +105,7 @@ kershaw = kershaw %>%
 
 # Creating a new variable for the previous event type
 previous_event_type = c()
-previous_event_type[1] = "start"
+previous_event_type[1] = "FF"
 for(i in 2:nrow(kershaw))
 {
   previous_event_type[i] = kershaw$event_type[i-1]
@@ -113,5 +113,16 @@ for(i in 2:nrow(kershaw))
 
 kershaw = kershaw %>%
   mutate(previous_event_type = previous_event_type)
+
+# Turning variables that are supposed to be factors into factors
+kershaw = kershaw %>%
+  mutate(pre_outs = as.factor(pre_outs),
+         count = as.factor(count),
+         runners = as.factor(runners),
+         top_inning_sw = as.factor(top_inning_sw),
+         bat_side = as.factor(bat_side),
+         previous_pitch_type = as.factor(previous_pitch_type))
+
+
 
 
