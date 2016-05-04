@@ -18,6 +18,8 @@ pitchfx = pitchfx %>%
                            ifelse(is.na(Runneron2nd_ID) == FALSE, 1, 0 ),
                            ifelse(is.na(Runneron3rd_ID) == FALSE, 1, 0 )) )
 
+
+
 # Creating a new categorical variable for count
 pitchfx = pitchfx %>%
   mutate(count = paste(pre_balls, pre_strikes, sep = "-"))
@@ -47,6 +49,27 @@ pitchfx = left_join(pitchfx, pitchers)
 kershaw = pitchfx %>%
   filter(Name == "Kershaw, Clayton") %>%
   arrange(game_date, at_bat_number)
+
+runners_count = rep(0, nrow(kershaw))
+
+for (i in 1:nrow(kershaw)){
+
+  if (is.na(kershaw$Runneron1st_ID[i]) == FALSE){
+    runners_count[i] = runners_count[i] + 1
+  }
+  
+  if (is.na(kershaw$Runneron2nd_ID[i]) == FALSE){
+    runners_count[i] = runners_count[i] + 1
+  }
+
+  if (is.na(kershaw$Runneron1st_ID[i]) == FALSE){
+    runners_count[i] = runners_count[i] + 1
+  } 
+
+}
+
+kershaw = kershaw %>%
+  mutate(runners_count = runners_count)
 
 # Removing intentional balls
 kershaw = kershaw %>%
