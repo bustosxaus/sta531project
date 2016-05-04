@@ -8,22 +8,21 @@ pitches_names = sort(unique(kershaw$pitch_type))
 
 
 m = 10
-k = pitches_names
+syms = pitches_names
 states = c(1:m)
-syms = c(1:k)
 
-T = read.table("trans_clayton.txt")
-init = read.table()
-emis = read.table("emis_clayton.txt")
+T = as.matrix(read.table("trans_clayton.txt"))
+init = c(read.table("start_clayton.txt"))$V1
+emis = as.matrix(read.table("emis_clayton.txt"))
 
 hmm = initHMM(states, syms, startProbs = init, transProbs = T, emissionProbs = emis)
 
-x = kershaw$pitch_type
+x = kershaw$pitch_type[1:10]
 n = length(x)
 
 forward_prob = HMM::forward(hmm, x)
  
-probs = exp(forward_prob[, n]) %*% T %*% emis
+probs = forward_prob[, n] %*% T %*% emis
 probs = probs / sum(probs)
 
 predicted = 
