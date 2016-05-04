@@ -70,12 +70,13 @@ model_game = function(T, init, true_pitches){
 # trained model
 T = trans_matrix(clayton)
 pitches = colnames(T)
-init = init_vec(clayton)
+init = init_vec(kershaw$pitch_type)
 
 # run on held out set
 true_pitches = clayton
 
 
+# accuracy for naive method
 accuracy = c()
 for (i in 1:1){
 	predicted_pitches = model_game(T, init, true_pitches)
@@ -85,6 +86,7 @@ for (i in 1:1){
 
 total_accuracy_naive = mean(accuracy)
 
+# accuracy per pitch
 accuracy_pitch = c()
 for (i in 1:length(pitches)){
 	subset = which(true_pitches == pitches[i])
@@ -100,8 +102,8 @@ lines(c(1:50), factor(predicted_pitches[1:50]), col = "red")
 barplot(c(accuracy_pitch, total_accuracy))
 
 #SUPER NAIVE
-pred_pitches_snaive = sample(x = pitches, size = length(true_pitches), replace = TRUE, prob = init) 
-total_accuracy = mean(true_pitches == pred_pitches_snaive)
+pred_pitches_snaive = sample(x = pitches_names, size = length(kershaw$pitch_type), replace = TRUE, prob = init) 
+total_accuracy = mean(kershaw$pitch_type == pred_pitches_snaive)
 
 # 3-D TRANSITION MATRIX PREDICTION
 # create naive but based on n-1 and n-2

@@ -6,7 +6,6 @@ library(caret)
 
 source("kershaw.R")
 
-
 #data = fread("Pitchfx.csv") %>%
 #  	   mutate(game_date = dmy(game_date))
 
@@ -53,9 +52,6 @@ source("kershaw.R")
 #new_x = c(0, 0, 0, 0, 0, 0, 0) 
 #prob = (1 + exp(-new_x %*% post_beta))^(-1)
 
-
-
-
 # MULTINOMIAL LOGISTIC REGRESSION
 # design matrices for input variables
 kershaw$pre_outs = factor(kershaw$pre_outs)
@@ -77,13 +73,14 @@ Y = Y.all[, -J]
 # design matrix for X
 X = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
     pitch_number + runners +
-    pitch_count + top_inning_sw + bat_side + 
-    inning + previous_pitch_type,
+    pitch_count + 
+    top_inning_sw + bat_side + 
+    inning, + previous_pitch_type,
     data = kershaw)
 P = ncol(X)
 
 # RUN MODEL
-multi_out = mlogit(Y, X, n = rep(1, nrow(Y)), samp = 2000, burn = 500)
+multi_out = mlogit(Y, X, n = rep(1, length(kershaw$pitch_type)), samp = 2000, burn = 500)
 betas = multi_out$beta
 # get posterior means and put in formula
 post_betas = matrix(0, nrow = J, ncol = P)
