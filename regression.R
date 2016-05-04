@@ -72,10 +72,11 @@ Y = Y.all[, -J]
 
 # design matrix for X
 X = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
-    pitch_number + runners +
+    pitch_number +
     pitch_count + 
     top_inning_sw + bat_side + 
-    inning + previous_pitch_type,
+    inning + previous_pitch_type +
+    as.factor(runners_count),
     data = kershaw)
 P = ncol(X)
 
@@ -209,12 +210,12 @@ for(i in 1:k)
       prob_vec = prob_mat[g,]
       pred_pitches[g] = sample(x = pitches_names, 
                                size = 1, replace = TRUE, prob = prob_vec)
-    }
-    
+    } 
     accuracy[m] = mean(pred_pitches == test$pitch_type)
   }
   
   holdout[i] = mean(accuracy)
 }
+
 
 mean(holdout)
