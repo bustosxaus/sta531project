@@ -75,7 +75,7 @@ X = model.matrix(~ pre_outs + pre_balls + pre_strikes +
     pitch_number + runners +
     pitch_count + 
     top_inning_sw + bat_side + 
-    inning, + previous_pitch_type,
+    inning + previous_pitch_type,
     data = kershaw)
 P = ncol(X)
 
@@ -122,11 +122,6 @@ mean(accuracy)
 
 # function to pull out variables from data frame
 # predict pitch based on model 
-
-new_x = c(1, rep(0, P-1))
-
-
-
 
 
 
@@ -176,7 +171,7 @@ for(i in 1:k)
   multi_out = mlogit(Y, X_train, n = rep(1, nrow(Y)), samp = 1000, burn = 200)
   betas = multi_out$beta
   
-  # get posterior means and put in formula
+  # get posterior means
   post_betas = matrix(0, nrow = J, ncol = P)
   for (j in 1:J-1){
     post_betas[j,] = colMeans(betas[,,j])
@@ -186,11 +181,6 @@ for(i in 1:k)
   ### SECTION WHERE WE HAVE TO CODE IN THE VECTORS FOR ALL OF THE TRAINING DATA ###
   
   # design matrix for test set, X_test
- # X_test = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
-  #                   pitch_number + runners +
-   #                  pitch_count + top_inning_sw + bat_side + 
-    #                 inning + previous_pitch_type,
-     #              data = test)
   X_test = model.matrix(~ as.factor(pre_outs)  +  as.factor(count) +
                           pitch_number + as.factor(runners) +
                           pitch_count + as.factor(top_inning_sw) + as.factor(bat_side) + 
@@ -227,4 +217,4 @@ for(i in 1:k)
   holdout[i] = mean(accuracy)
 }
 
-
+mean(holdout)
