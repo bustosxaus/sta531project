@@ -72,11 +72,10 @@ Y = Y.all[, -J]
 
 # design matrix for X
 X = model.matrix(~ pre_outs + pre_balls + pre_strikes + 
-    pitch_number +
+    pitch_number + runners +
     pitch_count + 
     top_inning_sw + bat_side + 
-    inning + previous_pitch_type +
-    as.factor(runners_count),
+    inning + previous_pitch_type,
     data = kershaw)
 P = ncol(X)
 
