@@ -8,22 +8,17 @@ source("kershaw.R")
 
 
 
-# testing variable selection from BMA package
-# all data for binary regression
-#data_reg = data.frame(fast, X1, X2, X3)
-#output = bic.glm(fast ~ outs0 + outs1 + balls0 + 
-#  balls1 + balls2 + strikes0 + strikes1,
-# 		glm.family="binomial", 
-# 		data = data_reg)
-#summary(output)
 
 
 formula_maker = function(vars)
 {
   form = vars[1]
-  for(t in 2:length(vars))
-  {
-    form = paste(form, vars[t], sep = "+")
+
+  if (length(vars) > 1){
+    for(t in 2:length(vars))
+    {
+      form = paste(form, vars[t], sep = "+")
+    }
   }
   FORMULA = as.formula(paste("~", form))
 
@@ -37,9 +32,9 @@ formula_maker = function(vars)
 CV = function(k, pitcher, vars){
   
   # Unique pitchers for our pitcher of interest
-  J = length(unique(pitcher$pitch_type))
+  J = length(unique(pitcher$new_pitch_type))
   # Names of pitches
-  pitches_names = sort(unique(pitcher$pitch_type))
+  pitches_names = sort(unique(pitcher$new_pitch_type))
   
   # Building our formula for model.matrix
   formula = formula_maker(vars)
@@ -63,14 +58,14 @@ CV = function(k, pitcher, vars){
     
     # design matrix for pitch_type
     # design matrix for Y's
-    Y.all = model.matrix(~ pitch_type - 1, data = train)
+    Y.all = model.matrix(~ new_pitch_type - 1, data = train)
     Y = Y.all[, -J]
     
     X_train = model.matrix(formula, data = train)
     P = ncol(X_train)
     
     # run model
-    multi_out = mlogit(Y, X_train, n = rep(1, length(train$pitch_type)), samp = 1000, burn = 200)
+    multi_out = mlogit(Y, X_train, n = rep(1, nrow(Y)), samp = 1000, burn = 200)
     betas = multi_out$beta
     
     # get posterior means
@@ -100,7 +95,7 @@ CV = function(k, pitcher, vars){
     
     # find average accuracy of model
     accuracy = c()
-    for (m in 1:10){
+    for (m in 1:100){
       pred_pitches = c()
       
       for (g in 1:nrow(prob_mat)){
@@ -108,7 +103,7 @@ CV = function(k, pitcher, vars){
         pred_pitches[g] = sample(x = pitches_names, 
                                  size = 1, replace = TRUE, prob = prob_vec)
       } 
-      accuracy[m] = mean(pred_pitches == test$pitch_type)
+      accuracy[m] = mean(pred_pitches == test$new_pitch_type)
     }
     
     holdout[i] = mean(accuracy)
@@ -120,12 +115,21 @@ CV = function(k, pitcher, vars){
 }
 
 
-CV(10, kershaw, vars)
+
 
 # Number of folds
 k = 2
+
 # Variables we wish to use
-vars = c("inning", "pre_outs", "pre_strikes", "pre_balls")
+vars = c("pre_outs", "pre_strikes", "pre_balls",
+  "inning")
+
+vars = c("pre_outs", "count", "pitch_number", "runners",
+  "pitch_count", "top_inning_sw", "bat_side", "inning", 
+  "prev_pitch_type")
+
+CV(k, kershaw, vars)
+
 
 # accuracy without each variable
 without = matrix(0, nrow = 1, ncol = length(vars))
@@ -137,5 +141,46 @@ for(d in 1:length(vars))
   # removing one variable at a time
   vars_remove = vars[-d]
   # Performing CV on the model missing variable d
-  without[1, d] = CV(k = k, pitcher=kershaw, vars = vars_remove)
+  without[1, d] = CV(k = k, pitcher = kershaw, vars = vars_remove)
 }
+
+vars = c("pre_outs", "count", "pitch_number", "runners_count",
+  "top_inning_sw", "bat_side", "inning", 
+  "prev_pitch_type")
+i = 2
+
+difference = 5
+max_accuracy = c(0)
+current_vars = c()
+while (difference > 0){
+
+  add = matrix(0, nrow = 1, ncol = length(vars))
+  colnames(add) = vars
+
+
+  # Iteratively add one variable and performing CV
+  for(d in 1:length(vars))
+  {
+    vars_add = vars[d]
+    add[1, d] = CV(k = k, pitcher = kershaw, vars = c(current_vars, vars_add))
+  }
+
+  max_accuracy[i] = max(add[1,])
+  difference = max_accuracy[i] - max_accuracy[i-1]
+
+  new_var = colnames(add)[which.max(add[1,])]
+  current_vars = c(current_vars, new_var)
+
+  vars = vars[-which(vars == new_var)]
+
+  i = i + 1
+}
+
+# testing variable selection from BMA package
+# all data for binary regression
+data_reg = data.frame(fast, X1, X2, X3)
+output = bic.glm(fast ~ outs0 + outs1 + balls0 + 
+  balls1 + balls2 + strikes0 + strikes1,
+     glm.family="binomial", 
+     data = data_reg)
+summary(output)

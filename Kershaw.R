@@ -25,11 +25,11 @@ pitchfx = pitchfx %>%
   mutate(count = paste(pre_balls, pre_strikes, sep = "-"))
 
 # Combining low-occurence pitches into "Other Category"
-Other = c("", "AB", "FO", "IN", "PO", "SC", "UN", "EP")
-Fastballs = c("FC", "FF", "FT", "FA")
-pitchfx = pitchfx %>%
-  mutate(new_pitch_type = ifelse(pitch_type %in% Other, "Other", 
-                                 ifelse(pitch_type %in% Fastballs,"FB", pitch_type)))
+#Other = c("", "AB", "FO", "IN", "PO", "SC", "UN", "EP")
+#Fastballs = c("FC", "FF", "FT", "FA")
+#pitchfx = pitchfx %>%
+#  mutate(new_pitch_type = ifelse(pitch_type %in% Other, "Other", 
+#                                 ifelse(pitch_type %in% Fastballs,"FB", pitch_type)))
 
 # tabling the occurences of pitches after pitch_type update
 # as.data.frame(table(pitchfx$new_pitch_type))
@@ -71,9 +71,11 @@ for (i in 1:nrow(kershaw)){
 kershaw = kershaw %>%
   mutate(runners_count = runners_count)
 
-# Removing intentional balls
+# Removing intentional balls and combining some pitch types
+Other = c("CH", "CU")
 kershaw = kershaw %>%
-  filter(pitch_type != "IN")
+  filter(pitch_type != "IN") %>%
+  mutate(new_pitch_type = ifelse(pitch_type %in% Other, "CH or CU", pitch_type))
 
 # Creating a new variable for the pitch number of the game
 pitchcounts = c()
@@ -97,11 +99,11 @@ previous_pitch_type = c()
 previous_pitch_type[1] = "FF"
 for(i in 2:nrow(kershaw))
 {
-  previous_pitch_type[i] = kershaw$pitch_type[i-1]
+  previous_pitch_type[i] = kershaw$new_pitch_type[i-1]
 }
 
 kershaw = kershaw %>%
-  mutate(previous_pitch_type = previous_pitch_type)
+  mutate(prev_pitch_type = previous_pitch_type)
 
 # Creating a new variable for the previous event type
 previous_event_type = c()
@@ -123,8 +125,13 @@ kershaw = kershaw %>%
          runners = as.factor(runners),
          top_inning_sw = as.factor(top_inning_sw),
          bat_side = as.factor(bat_side),
-         previous_pitch_type = as.factor(previous_pitch_type))
+         previous_pitch_type = as.factor(previous_pitch_type),
+         inning = as.numeric(inning),
+         runners_count = as.factor(runners_count))
 
-
+# Removing any pitches thrown after the 102nd pitch because 
+# these pitches are not representative of his average start
+kershaw = kershaw %>%
+  filter(pitch_count <= 102)
 
 
