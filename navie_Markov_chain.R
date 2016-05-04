@@ -66,7 +66,7 @@ k = 10
 n = nrow(kershaw)
 
 # Getting our folds -> these are indices for the rows that are the folds
-folds = createFolds(1:n, k = k)
+folds = ntile(1:n, k)
 
 # Running k-fold CV
 holdout = c()
@@ -75,9 +75,9 @@ for(i in 1:k)
 {
 
 	# Testing set
- 	 test = kershaw[folds[[i]], ]$pitch_type
+ 	 test = kershaw$pitch_type[which(folds == i)]
  	 # Training set
- 	 train = kershaw[-folds[[i]], ]$pitch_type
+ 	 train = kershaw$pitch_type[-which(folds == i)]
 
 
 	# trained model
@@ -102,7 +102,6 @@ for(i in 1:k)
 }
 
 mean(holdout)
-
 
 
 
