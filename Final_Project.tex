@@ -11,11 +11,16 @@
 
 \section{Introduction}
 
+Sabermetrics, or the analysis of baseball, has been used widely used by statisticians as a way to analyze the performance of baseball players and baseball teams. The main focus of sabermetrics has been to compare the performance of individual players. There are also other areas of baseball that would be also for players and coaches. The motivation behind this project is that it would greatly valuable for a batter to be to known what pitch to expect before a pitch is thrown. This project attempts to be able to predict the following pitch given a sequence of pitches by a pitcher and a set of covariates about the current game play. 
+
 \section{Data}
+
+This data is found publicly on mlb.com, and we obtained at from a hackathon in Baltimore for the baseball team the Orioles. The data set contains pitching data on all MLB teams over the course of 3 years, from 2013 to 2015. There are 2,114,497 observations of pitches in the data set, and 18 different variables. 
+
 
 \section{Methods}
 
-This project is aimed at applying statistical methods to analyze the pitching sequence of MLB pitchers. Various methods were implemented, and the results were compared to each other. The two main statistical techniques that were used were Markov Models and Multinomial Logistic Regression to predict the sequence of pitches. The sections below go further into detail into the methods used. To be able to compare the different methods, we used cross-validation for each method and used percent accuracy in the predictions as the comparison metric.
+This project is aimed at applying statistical methods to analyze the pitching sequence of MLB pitchers. Various methods were implemented, and the results were compared to each other. The two main statistical techniques that were used were Markov Models and Multinomial Logistic Regression to predict the sequence of pitches. The sections below go further into detail into the methods used. To be able to compare the different methods, we used cross-validation for each method and used percent accuracy in the predictions as the comparison metric. For each of these methods, we focused on applying the techniques to one particular pitcher.
 
 \subsection{Sampling from Probability Vectors}
 
@@ -23,33 +28,119 @@ The first naive method that was used as a baseline was obtaining the sample prob
 
 \subsection{Markov Model}
 
-Next, a simple Markov model was used. 
+Next, a simple Markov model was used. This Markov model only used an initial probability vector and a transition matrix to predict the next pitch in a sequence. The transition matrix was first created from a known set of pitches, and then it can be used to predict the next pitch in a sequence. Cross validation was also applied with this method by training, or creating the transition matrix, on a portion of the data, and then testing this Markov model on the held out set. The percent accuracy in predictions was once again used as the comparison metric.  
 
 \subsection{Hidden Markov Model}
 
-\subsubsection{Baum Welch}
+After applying a simple Markov model, a more complex hidden Markov model was implemented to the pitching sequences. Given a sequence of pitches, to obtain the optimal parameters for the model, the Baum-Welch algorithm was used. Once these parameters were determined, to obtain the probabilities of the following observation given the previous observations, $p(x_{n+1} | x_{1:n})$, the Forward Algorithm was then implemented. Both algorithms are described more in detail below.
+
+\subsubsection{Baum-Welch}
+
+The Baum-Welch algorithm applies expectation maximization to hidden Markov models to obtain parameters for the Hidden Markov Model, which are the inital probability vector, the transition matrix from state to state, and the emission matrix. The Baum-Welch algorithm is an iterative algorithm that uses the forward-backward algorithm at each iteration to estimate these parameters.  \\ 
+\\ 
+The forward-backward algorithm is as follows: \\
+\\ 
+In the forward algorithm, we sum over $z_1, z_2, \hdots, z_n$ in that order, and derive a recursion for computing $p(x_{1:j}, z_j)$ for each $z_j = 1,\hdots,m$ and each $j = 1,\hdots,n$. In the backward algorithm, we sum over $z_n, z_{n-1}, \hdots, z_1$, and derive a recursion for computing $p(x_{j+1:n} | z_j)$ for each $z_j = 1,\hdots,m$ and each $j = 1,\hdots,n$. \\ 
+\\ 
+The forward-backward algorithm was implemented as shown below. The log of the probabilities were taken in order to deal with arithmetic underflow/overflow and R's inability to store such a low probability. In addition, the log-sum-exp trick was used to deal with a similar problem. \\
+\\
+Forward algorithm: \\ 
+1. For each $z_1,\hdots, m,$ compute $g_1(z_1) = \log p(z_1) + \log p(x_1 | z_1)$ \\ 
+2. For each $j = 2, \hdots, n$ for each $z_j = 1,\hdots, m,$ compute:
+$$\log s_j(z_j) = g_j(z_j) = \log \sum_{z_{j-1}} \exp [g_{j-1}(z_{j-1}) + \log p(z_j | z_{j-1}) + \log p(x_j|z_j) ] $$
+3. $\log p(x_{1:n}) = \log \sum_{z_n} \exp(g_n(z_n))$ \\ 
+\\
+And $g_j(z_j) = \log p(x_{1:j}, z_j)$ \\
+\\ 
+Backward algorithm: \\ 
+1. For each $z_n = 1,\hdots, m,$ define $r_n(z_n) = 0$ \\ 
+2. For each $j = n - 1, n - 2, \hdots, 1,$ for each $z_j = 1,\hdots,m$ compute:
+$$r_j(z_j) = \log \sum_{z_{j+1}} \exp (\log p(z_{j+1}|z_j) + \log p(x_{j+1}|z_{j+1}) + r_{j+1} (z_{j+1}))$$ \\ 
+\\ 
+And $r_j(z_j) = \log p(x_{j+1:n}|z_j)$
+\\ 
+The Baum-Welch algorithm is implemented as follows:
+\\ 
+Using the following formula: \\
+$$\gamma_{ti} = P(Z_t = i|x) $$
+$$\beta_{tij} = P(Z_{t-1} = i, Z_t = j |x) $$
+$$\pi_j = \dfrac{\gamma_{1i}}{\sum_{j=1}^m \gamma_{1j}}$$
+$$T_{ij} = \dfrac{\sum_{t=2}^n \beta_{tij}}{ \sum_{t=1}^{n-1} \gamma_{ti}}$$ 
+\\ 
+The algorithm is: \\ 
+1. Randomly initialize $\pi, T, $ and $\phi = (\phi_1,\hdots, \phi_m)$\\ 
+2. Iteratively repeat the following two steps, until convergence: \\ 
+(a) E-step: Compute the $\gamma$ and $\beta$ using the forward-backward algorithm.\\ 
+(b) M-step: Update $\pi, T,$ and $\phi$ using the formulas above.\\
+\\ 
+This algorithm was implemented in Python, and the results from the Baum-Welch were used in the Forward algorithm to do probabilistic inference, which is described below. 
 
 \subsubsection{Forward Algorithm}
 
+Once the parameters are estimated for the transition matrix, the emission matrix, and the initial probability matrix, we can combine these parameters with results from the forward algorithm to get probabilites for the next observation given the previous observation.  \\ 
+\\ 
+We can predict $x_{j+1}$ and $x_{1:j}$ using: \\ 
+$$p(x_{j+1}|x_{1:j}) \propto p(x_{1:j}, x_{j+1}) = \sum_{z_j, z_{j+1}} p(x_{1:j}, x_{j+1}, z_j, z_{j+1})$$
+$$ = \sum_{z_j, z_j+1} p(x_{1:j}, z_j) p(z_{j+1}|z_j) p(x_{j+1}|z_{j+1})$$
+\\ 
+Cross validation was also applied in this setting. The Baum-Welch algorithm was applied to the training set. Then as we ran through a sequence of observations in the testing set, we can use the forward algorithm and the estimate parameters to get probabilities of the next observation. These predictions are compared to the true predictions in order to obtain an estimated percent accuracy in predictions.
+
 \subsection{Multinomial Logistic Regression}
+
+After Markov models were implemented, multinomial logistic regression models were then fit to predict the pitch given a set of covariates. Multinomial logistic regression is a classification scheme that generalizes logistic regression to a multivariate scheme. Because a pitcher can throw multiple types of pitches at a given observation, we have a vector of possible pitches. \\
+\\ 
+Given the multinomial data with J categories and the p-dimensional predictor variables, we can forecast in which j category a future data point $y^*$ at the predictor $x^*$ will be. \\
+\\
+Multinomial logistic regression can be understood as a set of independent binary regressions. If we have J possible outcomes, we can imagine running $J-1$ binary regression regression models, which are compared against the one pivot outcome. 
+
+$$ \frac{\Pr(Y_i=1)}{\Pr(Y_i=K)} = \beta_1 \cdot {X}_i $$
+$$ \frac{\Pr(Y_i=2)}{\Pr(Y_i=K)} = \beta_2 \cdot {X}_i $$
+$$ \cdots \cdots$$ 
+$$ \frac{\Pr(Y_i=K-1)}{\Pr(Y_i=K)} = \beta_{K-1} \cdot {X}_i$$ 
+
+\noindent For each possible outcome, there are separate vectors of regression coefficients. Therefore, we can calculate the probability of observing a category j after at a time occurrence as: 
+
+$$ P(y^* = j | x^*, \beta, n^* = 1 ) = e^{x^* \beta_j} / \sum_{k=1}^{J} e^{x^* \beta_k}. $$
+
+\noindent Once we calculate these probabilities for a set of covariates, we can predict what the pitch will be for the set of covariates.  \\ 
+\\ 
+For this dataset, there were specific variables that were intended to be used in the model, as they have known to make a difference in pitching. There were also some attempts at variable selection by choosing variables that created the highest percent accuracy when implemented on the testing set. 
 
 \subsection{Cross Validation}
 
+Cross Validation was implemented for the various methods. Cross Validation 
+
 \section{Results}
+blah
 
-\subsection{Sampling}
+\subsection{Exploratory Data Analysis}
 
-\subsection{Markov Model}
+blah
+\subsection{Predicting and Cross Validation}
 
-\subsection{Hidden Markov Model}
+The various methods descried in the Methods section were implemented for the pitcher Clayton Kershaw. He only pitches four different type of pitches, and he has numerous pitch observations in the dataset. The total percent accuracy was calculated for each method. 
 
-\subsection{Multinomial Logistic Regression}
+Results from testing within sample:
 
-\section{Discussion}
+\input{ALL4_NOTCV}
+
+Results from Cross Validation:
+
+\input{ALL4_CV}
+
+
+\begin{center}
+		\includegraphics[scale = .7]{NOT_CV.pdf}
+\end{center}
+
+\begin{center}
+		\includegraphics[scale = .7]{CV.pdf}
+\end{center}
 
 
 \section{Conclusion}
 
+blah
 
 
 \end{document}
