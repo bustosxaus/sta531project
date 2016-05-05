@@ -5,3 +5,4 @@ rownames(results) = c("Sampling", "Markov", "HMM", "LR1", "LR2", "LR3")
 colnames(results) = "Accuracy"
 results
 
+

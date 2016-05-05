@@ -11,25 +11,39 @@
 
 \section{Introduction}
 
-
 \section{Data}
-
 
 \section{Methods}
 
+This project is aimed at applying statistical methods to analyze the pitching sequence of MLB pitchers. Various methods were implemented, and the results were compared to each other. The two main statistical techniques that were used were Markov Models and Multinomial Logistic Regression to predict the sequence of pitches. The sections below go further into detail into the methods used. To be able to compare the different methods, we used cross-validation for each method and used percent accuracy in the predictions as the comparison metric.
+
+\subsection{Sampling from Probability Vectors}
+
+The first naive method that was used as a baseline was obtaining the sample probability vectors of throwing the various pitches. This method does not consider any of the covariates. After obtaining a sample probability vector of throwing each pitch, which is obtaining by getting the counts for each pitch and the dividing by the total number of pitches, we can then sample from the different pitch possibilities with probability of the probability vector. Once these predicted pitches are calculated, we obtain the percent accuracy of predictions. We ran this 100 times as there in inherent randomness in the sampling.
+
+\subsection{Markov Model}
+
+Next, a simple Markov model was used. 
+
+\subsection{Hidden Markov Model}
+
+\subsubsection{Baum Welch}
+
+\subsubsection{Forward Algorithm}
+
+\subsection{Multinomial Logistic Regression}
+
+\subsection{Cross Validation}
+
+\section{Results}
+
+\subsection{Sampling}
+
 \subsection{Markov Model}
 
 \subsection{Hidden Markov Model}
 
-\subsection{Logistic Regression}
-
-\section{Analysis}
-
-\subsection{Markov Model}
-
-\subsection{Hidden Markov Model}
-
-\subsection{Logistic Regression}
+\subsection{Multinomial Logistic Regression}
 
 \section{Discussion}
 

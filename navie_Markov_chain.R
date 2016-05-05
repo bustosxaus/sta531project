@@ -60,7 +60,7 @@ model_game = function(T, init, true_pitches){
 #### CROSS VALIDATION ####
 
 # Number of folds
-k = 10
+k = 5
 
 # number of observations
 n = nrow(kershaw)
@@ -91,7 +91,7 @@ for(i in 1:k)
 
 	# accuracy for naive method
 	accuracy = c()
-	for (m in 1:10){
+	for (m in 1:100){
 		predicted_pitches = model_game(T, init, true_pitches)
 		accuracy[m] = mean(predicted_pitches == true_pitches)
 
@@ -113,7 +113,7 @@ total_accuracy = mean(kershaw$pitch_type == pred_pitches_snaive)
 ## CROSS VALIDATION ##
 
 # Number of folds
-k = 10
+k = 5
 
 # number of observations
 n = nrow(kershaw)
@@ -135,7 +135,7 @@ for(i in 1:k)
  	init = init_vec(train)
 
  	accuracy = c()
- 	for (m in 1:10){
+ 	for (m in 1:100){
  		pred_pitches = sample(x = pitches_names, size = length(test), replace = TRUE, prob = init) 
 		accuracy[m] = mean(test == pred_pitches)
 	}
