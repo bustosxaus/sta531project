@@ -7,9 +7,6 @@ library(caret)
 source("kershaw.R")
 
 
-
-
-
 formula_maker = function(vars)
 {
   form = vars[1]
@@ -118,30 +115,34 @@ CV = function(k, pitcher, vars){
 
 
 # Number of folds
-k = 2
 
 # Variables we wish to use
-vars = c("pre_outs", "pre_strikes", "pre_balls",
-  "inning")
 
-vars = c("pre_outs", "count", "pitch_number", "runners",
+vars1 = c("count")
+vars2 = c("count", "pre_outs", "inning")
+vars3 = c("pre_outs", "count", "pitch_number", "runners_count",
   "pitch_count", "top_inning_sw", "bat_side", "inning", 
   "prev_pitch_type")
 
-CV(k, kershaw, vars)
+CV(5, kershaw, vars1)
+CV(5, kershaw, vars2)
+CV(5, kershaw, vars3)
+
+
+
 
 
 # accuracy without each variable
-without = matrix(0, nrow = 1, ncol = length(vars))
-colnames(without) = vars
+#without = matrix(0, nrow = 1, ncol = length(vars))
+#colnames(without) = vars
 
 # Iteratively removing one variable and performing CV
-for(d in 1:length(vars))
-{
+#for(d in 1:length(vars))
+#{
   # removing one variable at a time
-  vars_remove = vars[-d]
+#  vars_remove = vars[-d]
   # Performing CV on the model missing variable d
-  without[1, d] = CV(k = k, pitcher = kershaw, vars = vars_remove)
+#  without[1, d] = CV(k = k, pitcher = kershaw, vars = vars_remove)
 }
 
 vars = c("pre_outs", "count", "pitch_number", "runners_count",
@@ -149,6 +150,7 @@ vars = c("pre_outs", "count", "pitch_number", "runners_count",
   "prev_pitch_type")
 i = 2
 
+k = 5
 difference = 5
 max_accuracy = c(0)
 current_vars = c()
@@ -178,9 +180,9 @@ while (difference > 0){
 
 # testing variable selection from BMA package
 # all data for binary regression
-data_reg = data.frame(fast, X1, X2, X3)
-output = bic.glm(fast ~ outs0 + outs1 + balls0 + 
-  balls1 + balls2 + strikes0 + strikes1,
-     glm.family="binomial", 
-     data = data_reg)
-summary(output)
+#data_reg = data.frame(fast, X1, X2, X3)
+#output = bic.glm(fast ~ outs0 + outs1 + balls0 + 
+#  balls1 + balls2 + strikes0 + strikes1,
+#     glm.family="binomial", 
+#     data = data_reg)
+#summary(output)
