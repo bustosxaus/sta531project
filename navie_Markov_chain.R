@@ -53,10 +53,6 @@ model_game = function(T, init, true_pitches){
 
 
 
-# plot for path of pithces, predicted and true
-#plot(c(1:50), factor(true_pitches[1:50]), type = "p")
-#lines(c(1:50), factor(predicted_pitches[1:50]), col = "red")
-
 #### CROSS VALIDATION ####
 
 # Number of folds
@@ -70,6 +66,9 @@ folds = ntile(1:n, k)
 
 # Running k-fold CV
 holdout = c()
+
+
+accuracy_matrix = matrix(0, nrow = k, ncol = J)
 
 for(i in 1:k)
 {
@@ -97,11 +96,51 @@ for(i in 1:k)
 
 	}
 
+      accuracy_pitch = c()
+      for (b in 1:length(pitches_names)){
+        subset = which(true_pitches == pitches_names[b])
+          accuracy_pitch[b] = mean(true_pitches[subset] ==  predicted_pitches[subset])
+      }
+
+    accuracy_matrix[i,] = accuracy_pitch
+
 	holdout[i] = mean(accuracy)
 
 }
 
 mean(holdout)
+
+
+### TEST ON IN SAMPLE #####
+results1 = c(colMeans(accuracy_matrix), mean(holdout))
+
+
+
+	# trained model
+	T = trans_matrix(kershaw$pitch_type)
+	pitches = colnames(T)
+	init = init_vec(train)
+
+	# run on held out set
+	true_pitches = kershaw$pitch_type
+
+
+	# accuracy for naive method
+	accuracy = c()
+	for (m in 1:100){
+		predicted_pitches = model_game(T, init, true_pitches)
+		accuracy[m] = mean(predicted_pitches == true_pitches)
+
+	}
+
+      accuracy_pitch = c()
+      for (b in 1:length(pitches_names)){
+        subset = which(true_pitches == pitches_names[b])
+          accuracy_pitch[b] = mean(true_pitches[subset] ==  predicted_pitches[subset])
+      }
+
+
+RESULTS1 = c(accuracy_pitch, mean(accuracy))
 
 
 
@@ -131,6 +170,7 @@ for(i in 1:k)
  	# Training set
  	train = kershaw[-folds[[i]], ]$pitch_type
 
+ 	true_pitches = test
 
  	init = init_vec(train)
 
@@ -139,7 +179,37 @@ for(i in 1:k)
  		pred_pitches = sample(x = pitches_names, size = length(test), replace = TRUE, prob = init) 
 		accuracy[m] = mean(test == pred_pitches)
 	}
+
+	accuracy_pitch = c()
+      for (b in 1:length(pitches_names)){
+        subset = which(true_pitches == pitches_names[b])
+          accuracy_pitch[b] = mean(true_pitches[subset] ==  pred_pitches[subset])
+      }
+
+    accuracy_matrix[i,] = accuracy_pitch
 	holdout[i] = mean(accuracy)
 }
 
 mean(holdout)
+
+
+#### TEST ON IN SAMPLE ####
+results3 = c(colMeans(accuracy_matrix), mean(holdout))
+
+ 	init = init_vec(kershaw$pitch_type)
+
+ 	accuracy = c()
+ 	for (m in 1:100){
+ 		pred_pitches = sample(x = pitches_names, size = length(kershaw$pitch_type), replace = TRUE, prob = init) 
+		accuracy[m] = mean(kershaw$pitch_type == pred_pitches)
+	}
+
+	accuracy_pitch = c()
+      for (b in 1:length(pitches_names)){
+        subset = which(true_pitches == pitches_names[b])
+          accuracy_pitch[b] = mean(true_pitches[subset] ==  pred_pitches[subset])
+      }
+
+
+RESULTS2 = c(accuracy_pitch, mean(accuracy))
+
