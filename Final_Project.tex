@@ -11,11 +11,11 @@
 
 \section{Introduction}
 
-Sabermetrics, or the analysis of baseball, has been used widely used by statisticians as a way to analyze the performance of baseball players and baseball teams. The main focus of sabermetrics has been to compare the performance of individual players. There are also other areas of baseball that would be also for players and coaches. The motivation behind this project is that it would greatly valuable for a batter to be to known what pitch to expect before a pitch is thrown. This project attempts to be able to predict the following pitch given a sequence of pitches by a pitcher and a set of covariates about the current game play. 
+Sabermetrics, or the analysis of baseball, has been used widely used by statisticians as a way to analyze the performance of baseball players and baseball teams. The main focus of sabermetrics has been to compare the performance of individual players. There are also other areas of baseball that have been less explored that would be beneficial for players and coaches. The motivation behind this project is that it would greatly valuable for a batter to be to known what pitch to expect before a pitch is thrown. This project is from the outlook of a batter and attempts to be able to predict the following pitch given a sequence of pitches by a pitcher and a set of covariates about the current game play. This information could be used by a batter and a team to be able to predict pitches. 
 
 \section{Data}
 
-This data is found publicly on mlb.com, and we obtained at from a hackathon in Baltimore for the baseball team the Orioles. The data set contains pitching data on all MLB teams over the course of 3 years, from 2013 to 2015. There are 2,114,497 observations of pitches in the data set, and 18 different variables. 
+This data is found publicly on mlb.com, and we obtained at from a hackathon in Baltimore for the baseball team the Orioles. The data set contains pitching data on all MLB teams over the course of 3 years, from 2013 to 2015. There are 2,114,497 observations of pitches in the data set, and 39 different initial variables. 
 
 
 \section{Methods}
@@ -57,7 +57,7 @@ Backward algorithm: \\
 2. For each $j = n - 1, n - 2, \hdots, 1,$ for each $z_j = 1,\hdots,m$ compute:
 $$r_j(z_j) = \log \sum_{z_{j+1}} \exp (\log p(z_{j+1}|z_j) + \log p(x_{j+1}|z_{j+1}) + r_{j+1} (z_{j+1}))$$ \\ 
 \\ 
-And $r_j(z_j) = \log p(x_{j+1:n}|z_j)$
+And $r_j(z_j) = \log p(x_{j+1:n}|z_j)$ \\ 
 \\ 
 The Baum-Welch algorithm is implemented as follows:
 \\ 
@@ -77,7 +77,7 @@ This algorithm was implemented in Python, and the results from the Baum-Welch we
 
 \subsubsection{Forward Algorithm}
 
-Once the parameters are estimated for the transition matrix, the emission matrix, and the initial probability matrix, we can combine these parameters with results from the forward algorithm to get probabilites for the next observation given the previous observation.  \\ 
+Once the parameters are estimated for the transition matrix, the emission matrix, and the initial probability matrix, we can combine these parameters with results from the forward algorithm to get probabilities for the next observation given the previous observation.  \\ 
 \\ 
 We can predict $x_{j+1}$ and $x_{1:j}$ using: \\ 
 $$p(x_{j+1}|x_{1:j}) \propto p(x_{1:j}, x_{j+1}) = \sum_{z_j, z_{j+1}} p(x_{1:j}, x_{j+1}, z_j, z_{j+1})$$
@@ -108,26 +108,42 @@ For this dataset, there were specific variables that were intended to be used in
 
 \subsection{Cross Validation}
 
-Cross Validation was implemented for the various methods. Cross Validation 
+5-fold Cross Validation was also implemented for the various methods. Cross validation is a model validation technique to assess how statistical analysis will generalize to another independent data set. In cross validation, we divide the dataset into a training set and a test set. The training set's covariates and pitches are used to run and train the model, and the covariates of the test set are used to predict the pitches. The predicted pitches are then compared to the true pitches in the test set. The 5 folds refers to the number of times we divide the data into training and test sets. We average the results across the 5 different results. Cross validation is helps problems such as over-fitting a dataset because it tests the model against another dataset. 
 
 \section{Results}
-blah
 
 \subsection{Exploratory Data Analysis}
 
-blah
+First, some exploratory data analysis was conducted to get a feel for the data and see if certain covariates varied across the different types of pitches. Below are some of the results from the exploratory data analysis.
+
+
 \subsection{Predicting and Cross Validation}
 
-The various methods descried in the Methods section were implemented for the pitcher Clayton Kershaw. He only pitches four different type of pitches, and he has numerous pitch observations in the dataset. The total percent accuracy was calculated for each method. 
+The various methods descried in the Methods section were implemented for the pitcher Clayton Kershaw. He only pitches four different type of pitches, and he has numerous pitch observations in the dataset. These methods include sampling from the sample probability vector, a simple Markov chain, a hidden Markov model, and various multinomial logistic regression models. The total percent accuracy was calculated for each method. The only issue came with implementing the Baum-Welch algorithm. After many attempts, the product of the algorithm did not produce viable results, and therefore, the results are not included below. For the logistic regression, a simple variable selection process was done for looking to add variables that would allow the model to have the highest percent accuracy. The variable ``count'' (as is balls, strikes) was found to make the biggest difference in percent accuracy followed by ``inning'' and ``previous pitch''. After those variables, adding or changing other variables did not make much of a difference. Therefore, we have shown results for three models with the following variables used:\\ 
+\begin{center}
+\begin{tabular}{|l|l|}
+	\hline
+	Model \# & Variables \\ 
+	\hline
+	LR1  & count \\ 
+	\hline
+	LR2  & count, pre outs, inning \\
+	\hline
+	LR3  & pre outs, count, pitch number, runners count, pitch count \\ 
+	& top inning, bat side, inning, prev pitch type \\
+	\hline
+\end{tabular}
+\end{center}
 
-Results from testing within sample:
+\noindent The results of these from testing within sample is shown below.
 
 \input{ALL4_NOTCV}
 
-Results from Cross Validation:
+\noindent The results from testing using 5-fold Cross Validation is shown below.
 
 \input{ALL4_CV}
 
+\noindent These tables shown below as bar plots.
 
 \begin{center}
 		\includegraphics[scale = .7]{NOT_CV.pdf}
@@ -137,10 +153,13 @@ Results from Cross Validation:
 		\includegraphics[scale = .7]{CV.pdf}
 \end{center}
 
+\noindent As we can see from the tables and the bar plots, the best performing models are the multinomial logistic regression models. The Markov model does not have a much better performance than simply sampling from the probability vector. We can also see that predicting fast balls seems to be more accurate than other pitches. The cross validation technique also shows that it is a necessary technique to be able to accurately show the results of a model rather than simply doing in sample testing. 
 
 \section{Conclusion}
 
-blah
+After applying different statistical methods, there has been shown some results in ability to predict baseball pitches. The applications of various Markov models and multinomial logistic regression has also been shown to be useful as well as the success of cross validation to check the results of a model. However, there is still much room for improvement in predicting baseball pitches. This project focused on the pitches of one particular pitcher because of various pitch styles and complications with adding in multiple pitchers. This project can be further investigating by examining multiple pitchers and the differences in predicting pitches by different pitchers. 
+
+
 
 
 \end{document}
