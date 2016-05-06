@@ -6,12 +6,19 @@ source("Kershaw.R")
 # Table for count 
 chart_count = table(kershaw$count, kershaw$pitch_type)
 chart_count = as.data.frame.matrix(
-  chart_count/rowSums(chart_count))[1:(nrow(chart_count) - 2), ]
+  chart_count/rowSums(chart_count))#[1:(nrow(chart_count) - 2), ]
+
+
+print(xtable(chart_count, digits = 3, caption = "Proportion Table for Count"), 
+	file = "count.tex")
 
 # Table for pre_outs
 chart_pre_outs = table(kershaw$pre_outs, kershaw$pitch_type)
 chart_pre_outs = as.data.frame.matrix(
   chart_pre_outs/rowSums(chart_pre_outs))
+
+print(xtable(pre_outs, digits = 3, caption = "Proportion Table for Pre-Outs"), 
+	file = "pre_outs.tex")
 
 
 # Table for inning

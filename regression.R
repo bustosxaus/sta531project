@@ -48,6 +48,7 @@ CV = function(k, pitcher, vars){
   holdout = c()
 
   accuracy_matrix = matrix(0, nrow = k, ncol = J)
+  error_matrix = matrix(0, nrow = k, ncol = J)
 
   for(i in 1:k)
   {
@@ -100,7 +101,7 @@ CV = function(k, pitcher, vars){
     
     # find average accuracy of model
     accuracy = c()
-    for (m in 1:100){
+    #for (m in 1:100){
       pred_pitches = c()
       
       for (g in 1:nrow(prob_mat)){
@@ -109,7 +110,7 @@ CV = function(k, pitcher, vars){
                                  size = 1, replace = TRUE, prob = prob_vec)
         }       
       accuracy[m] = mean(pred_pitches == test$pitch_type)
-      }
+      #}
     
 
       true_pitches = test$pitch_type
@@ -119,11 +120,18 @@ CV = function(k, pitcher, vars){
           accuracy_pitch[b] = mean(true_pitches[subset] ==  pred_pitches[subset])
       }
 
+      not_accuracy_pitch = c()
+      for (c in 1:length(pitches_names)){
+        subset = which(true_pitches == pitches_names[c])
+          not_accuracy_pitch[c] = mean(true_pitches[subset] !=  pred_pitches[subset])
+      }
+
     accuracy_matrix[i,] = accuracy_pitch
+    error_matrix[i,] = not_accuracy_pitch
     holdout[i] = mean(accuracy)
   }
 
-  return(list(mean(holdout), colMeans(accuracy_matrix)))
+  return(list(mean(holdout), colMeans(accuracy_matrix), colMeans(error_matrix)))
 
 }
 

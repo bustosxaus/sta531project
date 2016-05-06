@@ -11,7 +11,7 @@
 
 \section{Introduction}
 
-Sabermetrics, or the analysis of baseball, has been used widely used by statisticians as a way to analyze the performance of baseball players and baseball teams. The main focus of sabermetrics has been to compare the performance of individual players. There are also other areas of baseball that have been less explored that would be beneficial for players and coaches. The motivation behind this project is that it would greatly valuable for a batter to be to known what pitch to expect before a pitch is thrown. This project is from the outlook of a batter and attempts to be able to predict the following pitch given a sequence of pitches by a pitcher and a set of covariates about the current game play. This information could be used by a batter and a team to be able to predict pitches. 
+Sabermetrics, or the analysis of baseball, has been used widely used by statisticians as a way to analyze the performance of baseball players and baseball teams. The main focus of sabermetrics has been to compare the performance of individual players. There are also other areas of baseball that have been less explored that would be beneficial for players and coaches. The motivation behind this project is that it would greatly valuable for a batter to know what pitch to expect before a pitch is thrown. This project is from the outlook of a batter and attempts to be able to predict the following pitch given a sequence of pitches by a pitcher and a set of covariates about the current game play. This information could be used by a batter and a team to be able to predict pitches. 
 
 \section{Data}
 
@@ -114,7 +114,11 @@ For this dataset, there were specific variables that were intended to be used in
 
 \subsection{Exploratory Data Analysis}
 
-First, some exploratory data analysis was conducted to get a feel for the data and see if certain covariates varied across the different types of pitches. Below are some of the results from the exploratory data analysis.
+First, some exploratory data analysis was conducted to get a feel for the data and see if certain covariates varied across the different types of pitches. Below are some of the results from the exploratory data analysis of proportions of the different pitches across covariates. The more the proportion varies across the columns, the more evidence that the proportion of pitches change across the covariates. These tables are shown only for the pitcher Clayton Kershaw, who we will be investing further below.
+
+\input{count}
+
+\input{pre_outs}
 
 
 \subsection{Predicting and Cross Validation}
@@ -135,11 +139,11 @@ The various methods descried in the Methods section were implemented for the pit
 \end{tabular}
 \end{center}
 
-\noindent The results of these from testing within sample is shown below.
+\noindent The results of these from testing within sample is shown below. This table shows percent accuracy for each true pitch type along with total percent accuracy calculated in the final column. CH is change up, CU is curve ball, FF is fast ball, and SL is slider.
 
 \input{ALL4_NOTCV}
 
-\noindent The results from testing using 5-fold Cross Validation is shown below.
+\noindent The results from testing using 5-fold Cross Validation is shown below. Once again, this table shows percent accuracy for each true pitch type along with total percent accuracy calculated in the final column for the various methods. CH is change up, CU is curve ball, FF is fast ball, and SL is slider.
 
 \input{ALL4_CV}
 
@@ -158,8 +162,6 @@ The various methods descried in the Methods section were implemented for the pit
 \section{Conclusion}
 
 After applying different statistical methods, there has been shown some results in ability to predict baseball pitches. The applications of various Markov models and multinomial logistic regression has also been shown to be useful as well as the success of cross validation to check the results of a model. However, there is still much room for improvement in predicting baseball pitches. This project focused on the pitches of one particular pitcher because of various pitch styles and complications with adding in multiple pitchers. This project can be further investigating by examining multiple pitchers and the differences in predicting pitches by different pitchers. 
-
-
 
 
 \end{document}
